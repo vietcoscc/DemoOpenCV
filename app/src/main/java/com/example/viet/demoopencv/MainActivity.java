@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         multiDilate(threshold, 10);
         Mat canny = new Mat();
         Imgproc.Canny(threshold, canny, 200, 100);
+        multiDilate(canny, 5);
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
         Imgproc.findContours(canny, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
             totalPoint += arrPoint.length;
 
             System.out.println("");
+            if (Imgproc.contourArea(contours.get(idx)) < 1000) continue;
             Imgproc.drawContours(inputClone, contours, idx, new Scalar(255, 0, 0), 0);
         }
         xCenter = xCenter / totalPoint;
