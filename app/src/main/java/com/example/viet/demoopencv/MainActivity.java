@@ -52,28 +52,40 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Mat processing(Mat input) {
+        Mat inputClone = input.clone();
         Mat threshold = new Mat();
         Mat gray = new Mat();
-        Mat blur = new Mat();
-        Imgproc.medianBlur(input, blur, 1);
-        Imgproc.cvtColor(blur, gray, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.cvtColor(input, gray, Imgproc.COLOR_RGB2GRAY);
         Imgproc.adaptiveThreshold(gray, threshold, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 15, 2);
         Imgproc.medianBlur(threshold, threshold, 5);
-        multiDilate(threshold, 12);
+        multiDilate(threshold, 10);
         Mat canny = new Mat();
         Imgproc.Canny(threshold, canny, 200, 100);
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
         Imgproc.findContours(canny, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+        System.out.println("Size : " + contours.size());
+        System.out.println("Size : " + hierarchy.cols());
+        float xCenter = 0, yCenter = 0;
+        int totalPoint = 0;
         for (int idx = 0; idx < contours.size(); idx++) {
             Point[] arrPoint = contours.get(idx).toArray();
+
             for (int i = 0; i < arrPoint.length; i++) {
+                xCenter += arrPoint[i].x;
+                yCenter += arrPoint[i].y;
                 System.out.print("(" + arrPoint[i].x + "," + arrPoint[i].y + ")");
             }
+            totalPoint += arrPoint.length;
+
             System.out.println("");
-            Imgproc.drawContours(blur, contours, idx, new Scalar(255, 0, 0));
+            Imgproc.drawContours(inputClone, contours, idx, new Scalar(255, 0, 0), 0);
         }
-        return blur;
+        xCenter = xCenter / totalPoint;
+        yCenter = yCenter / totalPoint;
+        System.out.println("CENTER : (" + xCenter + "," + yCenter + ")");
+        Imgproc.drawMarker(inputClone, new Point(xCenter, yCenter), new Scalar(255, 0, 0));
+        return inputClone;
     }
 
     private void multiDilate(Mat mat, int numberLoop) {
