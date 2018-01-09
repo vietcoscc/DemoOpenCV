@@ -19,6 +19,9 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -57,37 +60,63 @@ public class MainActivity extends AppCompatActivity {
         Mat gray = new Mat();
         Imgproc.cvtColor(input, gray, Imgproc.COLOR_RGB2GRAY);
         Imgproc.adaptiveThreshold(gray, threshold, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV, 15, 2);
-        Imgproc.medianBlur(threshold, threshold, 5);
+        medianBlur(threshold);
         multiDilate(threshold, 10);
+        copyMakeBorder(threshold, 1);
         Mat canny = new Mat();
         Imgproc.Canny(threshold, canny, 200, 100);
         multiDilate(canny, 5);
         List<MatOfPoint> contours = new ArrayList<>();
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(canny, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
-        System.out.println("Size : " + contours.size());
-        System.out.println("Size : " + hierarchy.cols());
-        float xCenter = 0, yCenter = 0;
-        int totalPoint = 0;
-        for (int idx = 0; idx < contours.size(); idx++) {
-            Point[] arrPoint = contours.get(idx).toArray();
+        Imgproc.findContours(canny, contours, new Mat(), Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_NONE);
 
-            for (int i = 0; i < arrPoint.length; i++) {
-                xCenter += arrPoint[i].x;
-                yCenter += arrPoint[i].y;
-                System.out.print("(" + arrPoint[i].x + "," + arrPoint[i].y + ")");
+        MatOfPoint matOfPoint = Collections.max(contours, new Comparator<MatOfPoint>() {
+            @Override
+            public int compare(MatOfPoint matOfPoint, MatOfPoint t1) {
+                if (matOfPoint.toArray().length > t1.toArray().length) {
+                    return 1;
+                }
+                return 0;
             }
-            totalPoint += arrPoint.length;
+        });
+        Imgproc.drawContours(inputClone, contours, contours.indexOf(matOfPoint), new Scalar(255, 0, 0), 5);
+//        for (int i = 0; i < matOfPoint.toArray().length; i++) {
+//            Imgproc.drawMarker(inputClone, new Point(matOfPoint.toArray()[i].x, matOfPoint.toArray()[i].y), new Scalar(0, 0, 255));
+//        }
 
-            System.out.println("");
-            if (Imgproc.contourArea(contours.get(idx)) < 1000) continue;
-            Imgproc.drawContours(inputClone, contours, idx, new Scalar(255, 0, 0), 0);
-        }
-        xCenter = xCenter / totalPoint;
-        yCenter = yCenter / totalPoint;
-        System.out.println("CENTER : (" + xCenter + "," + yCenter + ")");
-        Imgproc.drawMarker(inputClone, new Point(xCenter, yCenter), new Scalar(255, 0, 0));
+//        float xCenter = 0, yCenter = 0;
+//        int totalPoint = 0;
+//        for (int idx = 0; idx < contours.size(); idx++) {
+//            Point[] arrPoint = contours.get(idx).toArray();
+//            for (int i = 0; i < arrPoint.length; i++) {
+//                xCenter += arrPoint[i].x;
+//                yCenter += arrPoint[i].y;
+//                System.out.print("(" + arrPoint[i].x + "," + arrPoint[i].y + ")");
+//            }
+//            totalPoint += arrPoint.length;
+//
+//            System.out.println("");
+//            if (Imgproc.contourArea(contours.get(idx)) < 1000) continue;
+//            Imgproc.drawContours(inputClone, contours, idx, new Scalar(255, 0, 0), 0);
+//        }
+//        xCenter = xCenter / totalPoint;
+//        yCenter = yCenter / totalPoint;
+//        System.out.println("CENTER : (" + xCenter + "," + yCenter + ")");
+//        Imgproc.drawMarker(inputClone, new Point(xCenter, yCenter), new Scalar(255, 0, 0));
         return inputClone;
+
+    }
+
+    private void copyMakeBorder(Mat mat, int strokeWidth) {
+        Core.copyMakeBorder(mat, mat, strokeWidth, strokeWidth, strokeWidth, strokeWidth, Core.BORDER_CONSTANT, new Scalar(255, 255, 255));
+
+    }
+
+    private void medianBlur(Mat mat) {
+        Imgproc.medianBlur(mat, mat, 5);
+    }
+
+    private void gaussianBlur(Mat mat) {
+        Imgproc.GaussianBlur(mat, mat, new Size(5, 5), 2);
     }
 
     private void multiDilate(Mat mat, int numberLoop) {
