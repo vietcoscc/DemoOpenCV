@@ -4,23 +4,28 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     android:orientation="vertical"
     android:weightSum="2"
-    android:background="@color/colorPrimary"
     tools:context="com.example.viet.demoopencv.MainActivity">
 
     <ImageView
-        android:layout_margin="5dp"
         android:id="@+id/ivSrc"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_margin="5dp"
         android:layout_weight="1" />
 
     <ImageView
-        android:layout_margin="5dp"
         android:id="@+id/ivDes"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_margin="5dp"
         android:layout_weight="1" />
 
+    <Button
+        android:id="@+id/btnNextImage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Next image" />
 </LinearLayout>
